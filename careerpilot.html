@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CareerPilot AI — Smart Career Dashboard</title>
+<meta name="description" content="Track applications, skills, goals and study time in one career dashboard for students.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.383.0/dist/umd/lucide.min.js"></script>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#060a18; --bg2:#0a1024; --panel:#0e1630; --panel2:#131d3d; --raise:#18244b;
+  --line:rgba(140,155,255,.13); --line2:rgba(140,155,255,.22);
+  --text:#e9edff; --muted:#8a94b8; --faint:#5d6788;
+  --blue:#4f8cff; --violet:#8b5cf6; --cyan:#38bdf8;
+  --green:#34d399; --amber:#fbbf24; --red:#f87171;
+  --grad:linear-gradient(135deg,#4f8cff 0%,#8b5cf6 100%);
+  --r-lg:20px; --r-md:14px; --r-sm:10px;
+  --font-h:'Sora','DM Sans',system-ui,sans-serif; --font-b:'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --sb:264px; --sbc:78px;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:var(--font-b);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(900px 500px at 85% -10%,rgba(139,92,246,.18),transparent 60%),radial-gradient(800px 500px at 0% 0%,rgba(79,140,255,.14),transparent 60%);background-attachment:fixed}
+h1,h2,h3,h4{font-family:var(--font-h);margin:0;letter-spacing:-.01em;font-weight:600}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:8px}
+[hidden]{display:none!important}
+svg.lucide{width:18px;height:18px;stroke-width:1.9;flex:none}
+
+/* Layout */
+.app{display:grid;grid-template-columns:var(--sb) 1fr;min-height:100vh;transition:grid-template-columns .25s ease}
+.app.collapsed{grid-template-columns:var(--sbc) 1fr}
+.sidebar{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:6px;padding:18px 14px;background:linear-gradient(180deg,rgba(14,22,48,.92),rgba(8,13,30,.96));border-right:1px solid var(--line);overflow:hidden;z-index:40}
+.brand{display:flex;align-items:center;gap:12px;padding:6px 8px 18px}
+.logo{width:38px;height:38px;border-radius:12px;background:var(--grad);display:grid;place-items:center;box-shadow:0 8px 24px rgba(99,102,241,.45);flex:none}
+.logo svg{width:20px;height:20px;color:#fff}
+.brand b{font-family:var(--font-h);font-size:17px;white-space:nowrap}
+.brand small{display:block;color:var(--muted);font-size:12px;margin-top:-2px;white-space:nowrap}
+.nav-group{margin-top:8px;display:flex;flex-direction:column;gap:2px}
+.nav-label{color:var(--faint);font-size:12px;padding:10px 12px 6px;white-space:nowrap}
+.nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;color:var(--muted);white-space:nowrap;position:relative;transition:background .18s,color .18s}
+.nav a:hover{background:rgba(140,155,255,.07);color:var(--text)}
+.nav a.active{background:linear-gradient(90deg,rgba(79,140,255,.2),rgba(139,92,246,.12));color:#fff;box-shadow:inset 0 0 0 1px rgba(120,140,255,.22)}
+.nav a.active::before{content:"";position:absolute;left:-14px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--grad)}
+.nav .badge{margin-left:auto;font-size:12px;background:rgba(140,155,255,.14);padding:1px 8px;border-radius:99px;color:var(--text)}
+.sb-foot{margin-top:auto;display:flex;flex-direction:column;gap:10px}
+.profile{display:flex;align-items:center;gap:12px;padding:10px;border-radius:14px;background:var(--panel);border:1px solid var(--line)}
+.avatar{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#22d3ee,#6366f1);display:grid;place-items:center;font-family:var(--font-h);font-weight:600;flex:none}
+.profile div{min-width:0;white-space:nowrap}
+.profile b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis}
+.profile span{color:var(--muted);font-size:12px}
+.collapse-btn{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:none;border:0;color:var(--muted);white-space:nowrap}
+.collapse-btn:hover{background:rgba(140,155,255,.07);color:var(--text)}
+.collapse-btn svg{transition:transform .25s}
+.app.collapsed .collapse-btn svg{transform:rotate(180deg)}
+.app.collapsed .brand div,.app.collapsed .nav-label,.app.collapsed .nav a span,.app.collapsed .nav .badge,.app.collapsed .profile div,.app.collapsed .collapse-btn span{display:none}
+.app.collapsed .nav a,.app.collapsed .collapse-btn{justify-content:center;padding:11px}
+.app.collapsed .profile{justify-content:center;padding:8px}
+.app.collapsed .nav a.active::before{left:-14px}
+
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;padding:14px 28px;background:rgba(6,10,24,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.icon-btn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--panel);display:grid;place-items:center;color:var(--muted);transition:.18s;flex:none}
+.icon-btn:hover{color:var(--text);border-color:var(--line2);background:var(--panel2)}
+.menu-btn{display:none}
+.search{position:relative;flex:1;max-width:460px}
+.search input{width:100%;height:40px;padding:0 44px 0 40px;border-radius:12px;background:var(--panel);border:1px solid var(--line);outline:none;transition:.18s}
+.search input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,140,255,.18)}
+.search>svg{position:absolute;left:13px;top:11px;color:var(--faint)}
+.search kbd{position:absolute;right:10px;top:9px;font:12px var(--font-b);color:var(--faint);border:1px solid var(--line);border-radius:6px;padding:1px 7px}
+.results{position:absolute;top:48px;left:0;right:0;background:var(--panel2);border:1px solid var(--line2);border-radius:14px;padding:6px;box-shadow:0 24px 60px rgba(0,0,0,.5);max-height:360px;overflow:auto}
+.results a{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:10px}
+.results a:hover,.results a:focus-visible{background:rgba(140,155,255,.1)}
+.results small{color:var(--muted);margin-left:auto;font-size:12px}
+.results .none{padding:12px;color:var(--muted)}
+.top-actions{margin-left:auto;display:flex;gap:10px;align-items:center}
+.page{padding:28px;max-width:1280px;width:100%;margin:0 auto;animation:pagein .35s ease}
+@keyframes pagein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.page-head h1{font-size:26px}
+.page-head p{color:var(--muted);margin-top:4px;max-width:60ch}
+
+/* Primitives */
+.card{background:linear-gradient(180deg,rgba(19,29,61,.78),rgba(14,22,48,.78));border:1px solid var(--line);border-radius:var(--r-lg);padding:22px;box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 18px 40px -24px rgba(0,0,0,.7)}
+.card.flat{background:var(--panel);box-shadow:none}
+.card h3{font-size:16px}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
+.card-head p{color:var(--muted);font-size:13px;margin-top:2px}
+.btn{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px;border-radius:12px;border:1px solid var(--line2);background:var(--panel2);font-weight:500;transition:.18s;white-space:nowrap}
+.btn:hover{border-color:rgba(160,175,255,.4);background:var(--raise)}
+.btn.primary{background:var(--grad);border-color:transparent;color:#fff;box-shadow:0 10px 26px -10px rgba(99,102,241,.8)}
+.btn.primary:hover{filter:brightness(1.1)}
+.btn.ghost{background:none;border-color:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--text);background:rgba(140,155,255,.08)}
+.btn.danger:hover{color:var(--red);border-color:rgba(248,113,113,.4)}
+.btn.sm{height:32px;padding:0 12px;font-size:13px;border-radius:10px}
+.btn.xs{height:28px;width:28px;padding:0;justify-content:center;border-radius:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:2px 10px;border-radius:99px;border:1px solid var(--line);background:rgba(140,155,255,.08);color:var(--muted);white-space:nowrap}
+.chip.green{color:var(--green);background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.25)}
+.chip.amber{color:var(--amber);background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.25)}
+.chip.red{color:var(--red);background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.25)}
+.chip.blue{color:#8fb4ff;background:rgba(79,140,255,.12);border-color:rgba(79,140,255,.3)}
+.chip.violet{color:#c4b0ff;background:rgba(139,92,246,.13);border-color:rgba(139,92,246,.3)}
+.grid{display:grid;gap:18px}
+.g-4{grid-template-columns:repeat(4,1fr)}
+.g-3{grid-template-columns:repeat(3,1fr)}
+.g-2{grid-template-columns:1fr 1fr}
+.g-21{grid-template-columns:2fr 1fr}
+.g-12{grid-template-columns:1fr 2fr}
+.mt{margin-top:18px}
+.muted{color:var(--muted)}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field label{font-size:13px;color:var(--muted)}
+.input,.select,.textarea{width:100%;height:42px;padding:0 12px;border-radius:12px;background:rgba(6,10,24,.6);border:1px solid var(--line2);outline:none;transition:.18s}
+.textarea{height:auto;padding:12px;resize:vertical;min-height:90px;line-height:1.5}
+.input:focus,.select:focus,.textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,140,255,.18)}
+.select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238a94b8' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bar{height:8px;border-radius:99px;background:rgba(140,155,255,.12);overflow:hidden;position:relative}
+.bar>i{display:block;height:100%;border-radius:99px;background:var(--grad);transition:width .5s ease}
+.empty{text-align:center;padding:34px 16px;color:var(--muted)}
+.empty svg{width:30px;height:30px;color:var(--faint);margin-bottom:8px}
+.empty b{display:block;color:var(--text);margin-bottom:4px;font-weight:600}
+
+/* Dashboard */
+.hero{display:grid;grid-template-columns:1.5fr 1fr;gap:0;padding:0;overflow:hidden;position:relative;background:linear-gradient(135deg,#101a3c 0%,#15184a 55%,#1b1456 100%);border-color:rgba(130,140,255,.25)}
+.hero::after{content:"";position:absolute;inset:0;background:radial-gradient(500px 260px at 100% 0%,rgba(139,92,246,.35),transparent 70%),radial-gradient(400px 240px at 0% 100%,rgba(56,189,248,.14),transparent 70%);pointer-events:none}
+.hero>*{position:relative;z-index:1}
+.hero-l{padding:30px}
+.hero-l h1{font-size:28px;line-height:1.2}
+.hero-l>p{color:#aab4da;margin-top:8px;max-width:48ch}
+.next{margin-top:22px;padding:16px 18px;border-radius:16px;background:rgba(6,10,24,.45);border:1px solid rgba(150,165,255,.2);display:flex;gap:14px;align-items:center}
+.next .ico{width:42px;height:42px;border-radius:13px;background:var(--grad);display:grid;place-items:center;flex:none}
+.next small{color:#9fa9d6;font-size:12px}
+.next b{display:block;font-family:var(--font-h);font-weight:600;font-size:15px;line-height:1.35}
+.next p{font-size:13px;color:#aab4da;margin-top:2px}
+.next .btn{margin-left:auto}
+.hero-r{padding:26px 30px;display:flex;align-items:center;gap:22px;border-left:1px solid rgba(150,165,255,.14)}
+.ring{position:relative;width:150px;height:150px;flex:none}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .num{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring .num b{font-family:var(--font-h);font-size:36px;line-height:1}
+.ring .num span{font-size:12px;color:#9fa9d6;margin-top:4px}
+.factors{display:flex;flex-direction:column;gap:12px;flex:1;min-width:0}
+.factor{font-size:13px}
+.factor div{display:flex;justify-content:space-between;color:#b4bddf;margin-bottom:5px}
+.stat{display:flex;flex-direction:column;gap:8px;padding:18px 20px}
+.stat .top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:13px}
+.stat .top .ic{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:rgba(79,140,255,.14);color:#8fb4ff}
+.stat .ic.v{background:rgba(139,92,246,.16);color:#c4b0ff}.stat .ic.g{background:rgba(52,211,153,.13);color:var(--green)}.stat .ic.a{background:rgba(251,191,36,.13);color:var(--amber)}
+.stat b{font-family:var(--font-h);font-size:28px;font-weight:600;line-height:1.1}
+.stat small{color:var(--muted);font-size:12.5px}
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.chart text{fill:var(--faint);font-size:11px;font-family:var(--font-b)}
+.legend{display:flex;flex-direction:column;gap:9px;font-size:13px}
+.legend div{display:flex;align-items:center;gap:9px}
+.legend i{width:10px;height:10px;border-radius:4px;flex:none}
+.legend b{margin-left:auto;font-weight:600}
+.donut-wrap{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.donut-wrap>svg{width:140px;height:140px;flex:none}
+.donut-wrap .legend{flex:1;min-width:130px}
+.gap{display:grid;grid-template-columns:130px 1fr 54px;gap:12px;align-items:center;padding:8px 0;font-size:14px}
+.gap .track{height:8px;border-radius:99px;background:rgba(140,155,255,.12);position:relative}
+.gap .track i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:var(--grad)}
+.gap .track s{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--text);opacity:.6;border-radius:2px}
+.gap em{font-style:normal;color:var(--muted);font-size:12.5px;text-align:right}
+.list{display:flex;flex-direction:column}
+.li{display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+.li:last-child{border-bottom:0;padding-bottom:0}.li:first-child{padding-top:0}
+.li .meta{min-width:0;flex:1}
+.li .meta b{display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li .meta span{font-size:12.5px;color:var(--muted)}
+.dot{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:rgba(140,155,255,.1);color:#9fb4ff;flex:none}
+.feed .li{padding:9px 0}
+.feed small{color:var(--faint);white-space:nowrap}
+
+/* Kanban */
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(250px,1fr);gap:14px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x proximity}
+.kcol{background:rgba(10,16,36,.7);border:1px solid var(--line);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:10px;min-height:260px;scroll-snap-align:start;transition:.15s}
+.kcol.over{border-color:var(--blue);background:rgba(79,140,255,.07)}
+.kcol header{display:flex;align-items:center;gap:8px;padding:4px 6px;font-family:var(--font-h);font-weight:600;font-size:14px}
+.kcol header i{width:9px;height:9px;border-radius:50%}
+.kcol header span{margin-left:auto;font-family:var(--font-b);font-size:12px;color:var(--muted);background:rgba(140,155,255,.1);padding:1px 9px;border-radius:99px}
+.kcard{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px;cursor:grab;transition:border-color .15s,transform .15s}
+.kcard:hover{border-color:var(--line2)}
+.kcard.dragging{opacity:.4;transform:scale(.98)}
+.kcard h4{font-size:14.5px}
+.kcard .sub{color:var(--muted);font-size:13px;margin-top:2px}
+.kcard .foot{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap}
+.kcard .notes{font-size:12.5px;color:var(--muted);margin-top:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.kcard .acts{margin-left:auto;display:flex;gap:4px}
+.kcard select{height:28px;font-size:12px;border-radius:8px;background:rgba(6,10,24,.6);border:1px solid var(--line);padding:0 6px;color:var(--muted)}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.toolbar .input{max-width:280px}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;background:none;color:var(--muted);height:32px;padding:0 14px;border-radius:9px;font-weight:500}
+.seg button.on{background:var(--raise);color:#fff;box-shadow:inset 0 0 0 1px var(--line2)}
+
+/* Skills */
+.skill{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+.skill:last-child{border-bottom:0}
+.skill .name{flex:1;min-width:0}
+.skill .name b{display:block;font-weight:500}
+.skill .name span{font-size:12.5px;color:var(--muted)}
+.pips{display:flex;gap:5px}
+.pips button{width:22px;height:10px;border-radius:99px;border:0;background:rgba(140,155,255,.16);padding:0;transition:.15s}
+.pips button.on{background:var(--grad)}
+.pips button:hover{transform:scaleY(1.3)}
+.req{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.req:last-child{border-bottom:0}
+.req .meta{flex:1;min-width:0}.req .meta b{font-weight:500}.req .meta span{display:block;font-size:12.5px;color:var(--muted)}
+
+/* Roadmap */
+.phase{margin-top:16px}
+.phase h3{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.phase h3 span{font-family:var(--font-b);font-size:12.5px;font-weight:400;color:var(--muted)}
+.mile{display:flex;gap:14px;padding:14px;border-radius:14px;border:1px solid var(--line);background:rgba(10,16,36,.55);margin-bottom:10px;cursor:pointer;transition:.15s;text-align:left;width:100%}
+.mile:hover{border-color:var(--line2)}
+.mile.done{opacity:.7}
+.mile.done b{text-decoration:line-through;text-decoration-color:var(--faint)}
+.check{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--line2);display:grid;place-items:center;flex:none;margin-top:1px;transition:.15s;color:transparent}
+.check svg{width:14px;height:14px;stroke-width:3}
+.done .check,.check.on{background:var(--grad);border-color:transparent;color:#fff}
+.mile b{font-weight:500;display:block}
+.mile p{font-size:13px;color:var(--muted);margin-top:2px}
+.mile .chip{margin-left:auto;align-self:flex-start}
+
+/* Planner */
+.task{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.task:last-child{border-bottom:0}
+.task button.check{background:none;padding:0}
+.task.done .t{text-decoration:line-through;color:var(--faint)}
+.task .t{flex:1;min-width:0;overflow-wrap:anywhere}
+.addrow{display:grid;grid-template-columns:1fr 150px 130px auto;gap:10px;margin-bottom:10px}
+.daybars{display:flex;flex-direction:column;gap:10px}
+.dayrow{display:grid;grid-template-columns:44px 1fr 44px;gap:10px;align-items:center;font-size:13px;color:var(--muted)}
+.dayrow b{color:var(--text);font-weight:500;text-align:right}
+
+/* Resume */
+.score-big{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.chk{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.chk:last-child{border-bottom:0}
+.chk .st{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;flex:none;margin-top:1px}
+.chk .st svg{width:15px;height:15px;stroke-width:2.6}
+.st.pass{background:rgba(52,211,153,.15);color:var(--green)}.st.warn{background:rgba(251,191,36,.15);color:var(--amber)}.st.fail{background:rgba(248,113,113,.15);color:var(--red)}
+.chk b{font-weight:500}.chk p{font-size:13px;color:var(--muted)}
+.chk .pts{margin-left:auto;font-size:13px;color:var(--muted);white-space:nowrap}
+
+/* Modal + toast */
+.scrim{position:fixed;inset:0;background:rgba(3,6,16,.72);backdrop-filter:blur(4px);z-index:90;animation:fade .18s}
+.dialog{position:fixed;z-index:91;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,calc(100vw - 28px));max-height:calc(100vh - 40px);overflow:auto;background:var(--panel);border:1px solid var(--line2);border-radius:22px;padding:24px;box-shadow:0 40px 100px rgba(0,0,0,.65);animation:pop .2s ease}
+.dialog header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.dialog footer{display:flex;justify-content:flex-end;gap:10px;margin-top:6px}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{opacity:0;transform:translate(-50%,-48%) scale(.97)}}
+.toasts{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px;z-index:100}
+.toast{display:flex;align-items:center;gap:10px;background:var(--raise);border:1px solid var(--line2);padding:12px 16px;border-radius:14px;box-shadow:0 18px 40px rgba(0,0,0,.5);animation:toast .25s ease}
+.toast svg{color:var(--green)}
+@keyframes toast{from{opacity:0;transform:translateY(10px)}}
+.drawer-scrim{display:none}
+
+/* Responsive */
+@media (max-width:1180px){
+  .g-4{grid-template-columns:repeat(2,1fr)}
+  .hero{grid-template-columns:1fr}
+  .hero-r{border-left:0;border-top:1px solid rgba(150,165,255,.14)}
+  .g-21,.g-12{grid-template-columns:1fr}
+}
+@media (max-width:900px){
+  .app,.app.collapsed{grid-template-columns:1fr}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;width:284px;transform:translateX(-102%);transition:transform .25s ease;box-shadow:30px 0 80px rgba(0,0,0,.5)}
+  .app.open .sidebar{transform:none}
+  .app.collapsed .brand div,.app.collapsed .nav-label,.app.collapsed .nav a span,.app.collapsed .nav .badge,.app.collapsed .profile div,.app.collapsed .collapse-btn span{display:revert}
+  .app.collapsed .nav a,.app.collapsed .collapse-btn{justify-content:flex-start;padding:10px 12px}
+  .collapse-btn{display:none}
+  .drawer-scrim{position:fixed;inset:0;background:rgba(3,6,16,.6);z-index:35;display:none}
+  .app.open .drawer-scrim{display:block}
+  .menu-btn{display:grid}
+  .topbar{padding:12px 16px}
+  .page{padding:18px 16px 40px}
+  .g-3,.g-2{grid-template-columns:1fr}
+  .search kbd{display:none}
+}
+@media (max-width:560px){
+  .g-4{grid-template-columns:1fr 1fr;gap:12px}
+  .hero-l{padding:22px}.hero-r{padding:22px;flex-direction:column;align-items:stretch}
+  .ring{margin:0 auto}
+  .next{flex-wrap:wrap}.next .btn{margin-left:0;width:100%;justify-content:center}
+  .addrow{grid-template-columns:1fr 1fr}.addrow .input:first-child{grid-column:1/-1}
+  .row2{grid-template-columns:1fr}
+  .gap{grid-template-columns:96px 1fr 44px;gap:8px}
+  .stat b{font-size:24px}
+  .top-actions .btn span{display:none}
+  .top-actions .btn{padding:0 12px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <div class="brand">
+      <div class="logo"><i data-lucide="compass"></i></div>
+      <div><b>CareerPilot</b><small>Career dashboard</small></div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="sb-foot">
+      <a class="profile" href="#/settings" title="Profile and settings">
+        <div class="avatar" id="sbAvatar">A</div>
+        <div><b id="sbName">Alex</b><span id="sbRole">Frontend Developer</span></div>
+      </a>
+      <button class="collapse-btn" data-act="collapse" aria-label="Collapse sidebar"><i data-lucide="panel-left-close"></i><span>Collapse</span></button>
+    </div>
+  </aside>
+  <div class="drawer-scrim" data-act="closeMenu"></div>
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn menu-btn" data-act="openMenu" aria-label="Open menu"><i data-lucide="menu"></i></button>
+      <div class="search">
+        <i data-lucide="search"></i>
+        <input id="q" type="search" placeholder="Search applications, tasks, skills" autocomplete="off" aria-label="Search">
+        <kbd>/</kbd>
+        <div class="results" id="results" hidden></div>
+      </div>
+      <div class="top-actions">
+        <button class="btn" data-act="logHours"><i data-lucide="timer"></i><span>Log study time</span></button>
+        <button class="btn primary" data-act="addApp"><i data-lucide="plus"></i><span>Add application</span></button>
+      </div>
+    </header>
+    <main id="view" class="page" tabindex="-1"></main>
+  </div>
+</div>
+<div id="modal" hidden></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+'use strict';
+/* ============ Utilities ============ */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const uid = () => Math.random().toString(36).slice(2, 9);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const iso = d => { const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000); return z.toISOString().slice(0, 10); };
+const addDays = n => { const d = new Date(); d.setDate(d.getDate() + n); return iso(d); };
+const today = () => iso(new Date());
+const daysUntil = s => Math.round((new Date(s + 'T00:00') - new Date(today() + 'T00:00')) / 864e5);
+const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+const icons = () => { try { window.lucide && lucide.createIcons(); } catch (e) {} };
+const ic = (n, cls = '') => `<i data-lucide="${n}" class="${cls}"></i>`;
+function dueLabel(s) {
+  if (!s) return { t: 'No date', c: '' };
+  const d = daysUntil(s);
+  if (d < 0) return { t: `${-d}d overdue`, c: 'red' };
+  if (d === 0) return { t: 'Today', c: 'amber' };
+  if (d === 1) return { t: 'Tomorrow', c: 'amber' };
+  if (d <= 7) return { t: `In ${d} days`, c: 'blue' };
+  return { t: new Date(s + 'T00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short' }), c: '' };
+}
+function timeAgo(ts) {
+  const m = Math.floor((Date.now() - ts) / 60000);
+  if (m < 1) return 'now'; if (m < 60) return m + 'm';
+  const h = Math.floor(m / 60); if (h < 24) return h + 'h';
+  return Math.floor(h / 24) + 'd';
+}
+
+/* ============ Domain data ============ */
+const STAGES = [
+  { id: 'saved', label: 'Saved', color: '#8a94b8' },
+  { id: 'applied', label: 'Applied', color: '#4f8cff' },
+  { id: 'interview', label: 'Interview', color: '#8b5cf6' },
+  { id: 'offer', label: 'Offer', color: '#34d399' },
+  { id: 'rejected', label: 'Closed', color: '#f87171' }
+];
+const ROLES = {
+  frontend: { label: 'Frontend Developer', req: [['HTML & CSS',4],['JavaScript',4],['React',4],['TypeScript',3],['Git',3],['Accessibility',3],['Testing',2],['Figma',2]] },
+  data: { label: 'Data Analyst', req: [['Python',4],['SQL',4],['Statistics',3],['Pandas',3],['Data visualization',3],['Excel',3],['Machine learning',2]] },
+  design: { label: 'Product Designer', req: [['Figma',4],['User research',3],['Prototyping',4],['Visual design',4],['Design systems',3],['HTML & CSS',2]] },
+  backend: { label: 'Backend Developer', req: [['Node.js',4],['SQL',4],['REST APIs',4],['Git',3],['Testing',3],['Docker',2],['System design',2]] }
+};
+const ROADMAPS = {
+  frontend: [
+    { phase: 'Foundations', items: [
+      ['f1','Build 3 pages with semantic HTML and responsive CSS','Use Grid, Flexbox and media queries without a framework.',8],
+      ['f2','Learn modern JavaScript (ES6+)','Modules, async/await, array methods, DOM events.',12],
+      ['f3','Get comfortable with Git and GitHub','Branches, pull requests and a clean commit history.',4] ]},
+    { phase: 'Frameworks and tooling', items: [
+      ['f4','Build a React app with routing and state','Hooks, context, and a data-fetching pattern.',15],
+      ['f5','Add TypeScript to a project','Typed props, API responses and utility types.',8],
+      ['f6','Write component tests','Testing Library for behaviour, not implementation.',6] ]},
+    { phase: 'Portfolio and job search', items: [
+      ['f7','Ship a polished portfolio project','Real data, empty states, loading states and accessibility.',20],
+      ['f8','Run an accessibility audit','Keyboard navigation, contrast and screen reader checks.',4],
+      ['f9','Do 3 mock interviews','Cover JavaScript fundamentals and a live coding task.',5] ]}
+  ],
+  data: [
+    { phase: 'Foundations', items: [
+      ['d1','Learn SQL joins, windows and CTEs','Answer questions on a practice database.',10],
+      ['d2','Python basics and Pandas','Clean and reshape a messy CSV.',12],
+      ['d3','Statistics refresher','Distributions, hypothesis tests and confidence intervals.',8] ]},
+    { phase: 'Applied work', items: [
+      ['d4','Build a dashboard from public data','Tell one clear story with 3 charts.',10],
+      ['d5','Run an A/B test analysis','Write up the method, result and caveats.',6],
+      ['d6','Train a simple model','Baseline first, then compare two approaches.',10] ]},
+    { phase: 'Job search', items: [
+      ['d7','Publish a case study','Problem, data, method, result.',8],
+      ['d8','Practice SQL interview questions','Time yourself on 20 problems.',6] ]}
+  ],
+  design: [
+    { phase: 'Foundations', items: [
+      ['p1','Learn layout, type and colour fundamentals','Redesign one screen of an app you use.',8],
+      ['p2','Master Figma components and auto layout','Build a small component library.',10],
+      ['p3','Run 5 user interviews','Summarise findings in one page.',6] ]},
+    { phase: 'Product thinking', items: [
+      ['p4','Create a clickable prototype','Test it with 3 people and iterate.',12],
+      ['p5','Design a mini design system','Tokens, components and usage notes.',14] ]},
+    { phase: 'Portfolio', items: [
+      ['p6','Publish 2 case studies','Show process, trade-offs and outcomes.',20],
+      ['p7','Practice a design critique','Present your work in 15 minutes.',4] ]}
+  ],
+  backend: [
+    { phase: 'Foundations', items: [
+      ['b1','Build a REST API with Node.js','CRUD endpoints, validation and error handling.',12],
+      ['b2','Design a relational schema','Normalise tables and write indexed queries.',8],
+      ['b3','Learn Git workflows','Feature branches and code review.',4] ]},
+    { phase: 'Production skills', items: [
+      ['b4','Add authentication and tests','JWT or sessions, plus integration tests.',12],
+      ['b5','Containerise with Docker','Run app and database with Compose.',6],
+      ['b6','Study system design basics','Caching, queues and scaling reads.',10] ]},
+    { phase: 'Job search', items: [
+      ['b7','Deploy a project publicly','Add logging and a health check.',8],
+      ['b8','Practice data-structure problems','Arrays, hashing, trees, graphs.',15] ]}
+  ]
+};
+
+function seed() {
+  const hours = {}; [1.5, 2, 0, 2.5, 3, 1, 2].forEach((h, i) => { if (h) hours[addDays(-(6 - i))] = h; });
+  return {
+    v: 1,
+    profile: { name: 'Alex Rivera', university: 'State University', grad: '2027', role: 'frontend', goal: 2.5 },
+    apps: [
+      { id: uid(), company: 'Northwind Labs', role: 'Frontend Intern', status: 'saved', date: addDays(2), location: 'Remote', notes: 'Tailor resume for design-system work.' },
+      { id: uid(), company: 'Lumen Health', role: 'UI Engineering Intern', status: 'saved', date: addDays(9), location: 'Hybrid', notes: '' },
+      { id: uid(), company: 'Orbit Pay', role: 'Web Developer Intern', status: 'applied', date: addDays(-4), location: 'On-site', notes: 'Referred by a senior from the coding club.' },
+      { id: uid(), company: 'Kite Analytics', role: 'Frontend Engineer Intern', status: 'applied', date: addDays(-2), location: 'Remote', notes: '' },
+      { id: uid(), company: 'Fieldnote', role: 'React Developer Intern', status: 'interview', date: addDays(3), location: 'Remote', notes: 'Technical round on component design. Review hooks and accessibility.' },
+      { id: uid(), company: 'Parcel Co.', role: 'Junior Web Developer', status: 'rejected', date: addDays(-12), location: 'On-site', notes: 'Asked for more backend experience.' }
+    ],
+    skills: [
+      { id: uid(), name: 'HTML & CSS', cat: 'Core', level: 4 },
+      { id: uid(), name: 'JavaScript', cat: 'Core', level: 3 },
+      { id: uid(), name: 'React', cat: 'Framework', level: 3 },
+      { id: uid(), name: 'Git', cat: 'Tooling', level: 3 },
+      { id: uid(), name: 'Figma', cat: 'Design', level: 2 },
+      { id: uid(), name: 'TypeScript', cat: 'Core', level: 1 }
+    ],
+    tasks: [
+      { id: uid(), title: 'Prepare for Fieldnote technical round', due: addDays(2), pri: 'high', done: false },
+      { id: uid(), title: 'Tailor resume for Northwind Labs', due: addDays(1), pri: 'high', done: false },
+      { id: uid(), title: 'Finish TypeScript handbook chapter 3', due: addDays(4), pri: 'med', done: false },
+      { id: uid(), title: 'Update LinkedIn headline', due: addDays(-1), pri: 'low', done: false },
+      { id: uid(), title: 'Push portfolio project to GitHub', due: addDays(-2), pri: 'med', done: true }
+    ],
+    hours,
+    roadmap: { frontend: { f1: true, f2: true, f3: true, f4: true } },
+    resume: '',
+    activity: [
+      { t: Date.now() - 36e5 * 3, text: 'Moved Fieldnote to Interview', icon: 'calendar-check' },
+      { t: Date.now() - 36e5 * 26, text: 'Completed “Push portfolio project to GitHub”', icon: 'check-circle-2' },
+      { t: Date.now() - 36e5 * 50, text: 'Applied to Kite Analytics', icon: 'send' }
+    ],
+    ui: { collapsed: false }
+  };
+}
+
+/* ============ State ============ */
+const KEY = 'careerpilot.v1';
+let mem = null;
+function load() {
+  try { const raw = localStorage.getItem(KEY); if (raw) { const s = JSON.parse(raw); if (s && s.v === 1) return s; } } catch (e) {}
+  return seed();
+}
+let S = load();
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { mem = S; } }
+function log(text, icon = 'activity') { S.activity.unshift({ t: Date.now(), text, icon }); S.activity = S.activity.slice(0, 30); }
+function commit(fn, opts = {}) { fn(S); save(); if (!opts.quiet) render(); else renderChrome(); }
+
+/* ============ Derived metrics ============ */
+const normName = s => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+function findSkill(name) {
+  const n = normName(name);
+  return S.skills.find(s => { const m = normName(s.name); return m === n || (m.length > 2 && n.length > 2 && (m.includes(n) || n.includes(m))); });
+}
+function gaps() {
+  return ROLES[S.profile.role].req.map(([name, target]) => {
+    const sk = findSkill(name); const level = sk ? sk.level : 0;
+    return { name, target, level, skill: sk, ratio: Math.min(level / target, 1), gap: Math.max(target - level, 0) };
+  });
+}
+function roadmapProgress(role = S.profile.role) {
+  const all = ROADMAPS[role].flatMap(p => p.items); const done = all.filter(i => (S.roadmap[role] || {})[i[0]]).length;
+  return { done, total: all.length, ratio: all.length ? done / all.length : 0 };
+}
+function weekHours() { return Array.from({ length: 7 }, (_, i) => { const d = addDays(-(6 - i)); return { date: d, v: S.hours[d] || 0, label: new Date(d + 'T00:00').toLocaleDateString(undefined, { weekday: 'short' }), today: i === 6 }; }); }
+function streak() { let n = 0, i = (S.hours[today()] || 0) > 0 ? 0 : 1; while ((S.hours[addDays(-i)] || 0) > 0) { n++; i++; } return n; }
+function readiness() {
+  const g = gaps(); const skills = g.reduce((a, b) => a + b.ratio, 0) / (g.length || 1);
+  const road = roadmapProgress().ratio;
+  const active = S.apps.filter(a => ['applied', 'interview', 'offer'].includes(a.status)).length;
+  const hasIv = S.apps.some(a => ['interview', 'offer'].includes(a.status));
+  const apps = Math.min(1, active / 8) * .7 + (hasIv ? .3 : 0);
+  const wk = weekHours().reduce((a, b) => a + b.v, 0);
+  const tasksDone = S.tasks.length ? S.tasks.filter(t => t.done).length / S.tasks.length : 0;
+  const consistency = Math.min(1, wk / (S.profile.goal * 7)) * .6 + tasksDone * .4;
+  const total = Math.round((skills * .4 + road * .25 + apps * .2 + consistency * .15) * 100);
+  return { total, parts: [['Skills match', skills], ['Roadmap', road], ['Applications', apps], ['Consistency', consistency]] };
+}
+function nextMove() {
+  const open = S.tasks.filter(t => !t.done && t.due && daysUntil(t.due) <= 0 && t.pri === 'high');
+  if (open.length) return { icon: 'flag', title: open[0].title, why: 'High-priority and due now.', cta: 'Open planner', href: '#/planner' };
+  const iv = S.apps.filter(a => a.status === 'interview' && a.date && daysUntil(a.date) >= 0 && daysUntil(a.date) <= 7).sort((a, b) => a.date.localeCompare(b.date))[0];
+  if (iv) return { icon: 'calendar-check', title: `Prepare for your ${iv.company} interview`, why: `${dueLabel(iv.date).t}. Review your project stories and role fundamentals.`, cta: 'View application', href: '#/applications' };
+  const dl = S.apps.filter(a => a.status === 'saved' && a.date && daysUntil(a.date) >= 0 && daysUntil(a.date) <= 3).sort((a, b) => a.date.localeCompare(b.date))[0];
+  if (dl) return { icon: 'send', title: `Submit your ${dl.company} application`, why: `Deadline ${dueLabel(dl.date).t.toLowerCase()}.`, cta: 'View application', href: '#/applications' };
+  const g = gaps().filter(x => x.gap > 0).sort((a, b) => b.gap - a.gap)[0];
+  if (g) return { icon: 'trending-up', title: `Raise ${g.name} from level ${g.level} to ${g.target}`, why: `Your biggest gap for ${ROLES[S.profile.role].label}.`, cta: 'Open skills', href: '#/skills' };
+  return { icon: 'timer', title: 'Log today’s study session', why: 'Small, steady sessions keep your streak alive.', cta: 'Log time', act: 'logHours' };
+}
+
+/* ============ Charts (SVG) ============ */
+function ringSvg(pct, size = 150, sw = 12, id = 'rg') {
+  const r = (size - sw) / 2, c = 2 * Math.PI * r;
+  return `<svg viewBox="0 0 ${size} ${size}" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#38bdf8"/><stop offset=".5" stop-color="#4f8cff"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
+  <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="rgba(150,165,255,.16)" stroke-width="${sw}"/>
+  <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="url(#${id})" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${c * pct / 100} ${c}"/></svg>`;
+}
+function barChart(data, goal) {
+  const W = 520, H = 230, pl = 28, pb = 28, pt = 14; const max = Math.max(goal * 1.35, ...data.map(d => d.v), 1); const ch = H - pb - pt; const bw = (W - pl) / data.length;
+  const y = v => pt + ch - (v / max) * ch;
+  const ticks = [0, .5, 1].map(f => { const v = max * f; return `<line x1="${pl}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="rgba(150,165,255,.12)"/><text x="${pl - 8}" y="${y(v) + 4}" text-anchor="end">${v % 1 ? v.toFixed(1) : v}h</text>`; }).join('');
+  const bars = data.map((d, i) => { const x = pl + i * bw + bw * .22, w = bw * .56, h = Math.max((d.v / max) * ch, d.v ? 4 : 0);
+    return `<g><rect x="${x}" y="${pt + ch - h}" width="${w}" height="${h}" rx="7" fill="${d.today ? 'url(#bg1)' : 'rgba(110,130,255,.38)'}"><title>${d.label}: ${d.v}h</title></rect><text x="${x + w / 2}" y="${H - 8}" text-anchor="middle" ${d.today ? 'style="fill:#e9edff;font-weight:600"' : ''}>${d.label}</text></g>`; }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Study hours over the last 7 days"><defs><linearGradient id="bg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#4f8cff"/></linearGradient></defs>${ticks}${bars}
+  <line x1="${pl}" x2="${W}" y1="${y(goal)}" y2="${y(goal)}" stroke="#fbbf24" stroke-dasharray="5 5" opacity=".7"/><text x="${W}" y="${y(goal) - 6}" text-anchor="end" style="fill:#fbbf24">Daily goal ${goal}h</text></svg>`;
+}
+function donut(counts) {
+  const total = counts.reduce((a, b) => a + b.n, 0); const r = 52, c = 2 * Math.PI * r; let off = 0;
+  const segs = total ? counts.filter(x => x.n).map(x => { const len = x.n / total * c; const s = `<circle cx="70" cy="70" r="${r}" fill="none" stroke="${x.color}" stroke-width="16" stroke-dasharray="${Math.max(len - 3, 1)} ${c}" stroke-dashoffset="${-off}"><title>${x.label}: ${x.n}</title></circle>`; off += len; return s; }).join('') : '';
+  return `<svg viewBox="0 0 140 140" role="img" aria-label="Applications by stage"><g transform="rotate(-90 70 70)"><circle cx="70" cy="70" r="${r}" fill="none" stroke="rgba(150,165,255,.14)" stroke-width="16"/>${segs}</g><text x="70" y="68" text-anchor="middle" style="fill:#e9edff;font:600 26px Sora,sans-serif">${total}</text><text x="70" y="86" text-anchor="middle" style="fill:#8a94b8;font-size:11px">total</text></svg>`;
+}
+
+/* ============ Views ============ */
+const NAV = [
+  { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard', group: 'Overview' },
+  { id: 'applications', label: 'Applications', icon: 'briefcase', group: 'Overview', badge: () => S.apps.filter(a => ['applied', 'interview'].includes(a.status)).length },
+  { id: 'planner', label: 'Planner', icon: 'list-checks', group: 'Overview', badge: () => S.tasks.filter(t => !t.done).length },
+  { id: 'skills', label: 'Skills', icon: 'gauge', group: 'Grow' },
+  { id: 'roadmap', label: 'Roadmap', icon: 'route', group: 'Grow' },
+  { id: 'resume', label: 'Resume check', icon: 'file-text', group: 'Grow' },
+  { id: 'settings', label: 'Settings', icon: 'settings', group: 'Account' }
+];
+let appQuery = '';
+let taskFilter = 'all';
+let roadmapRole = null;
+
+function greeting() { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; }
+
+function viewDashboard() {
+  const r = readiness(), nm = nextMove(), wk = weekHours(), first = S.profile.name.split(' ')[0];
+  const counts = STAGES.map(s => ({ ...s, n: S.apps.filter(a => a.status === s.id).length }));
+  const gp = gaps().filter(g => g.gap > 0).sort((a, b) => b.gap - a.gap).slice(0, 5);
+  const upcoming = [
+    ...S.apps.filter(a => a.date && ['saved', 'interview'].includes(a.status) && daysUntil(a.date) >= 0).map(a => ({ title: `${a.company}`, sub: a.status === 'interview' ? 'Interview' : 'Application deadline', date: a.date, icon: a.status === 'interview' ? 'calendar-check' : 'send' })),
+    ...S.tasks.filter(t => !t.done && t.due).map(t => ({ title: t.title, sub: 'Task', date: t.due, icon: 'circle-check' }))
+  ].sort((a, b) => a.date.localeCompare(b.date)).slice(0, 5);
+  const wkTotal = wk.reduce((a, b) => a + b.v, 0);
+  const dueWeek = S.tasks.filter(t => !t.done && t.due && daysUntil(t.due) <= 7).length;
+  const ivs = S.apps.filter(a => a.status === 'interview').length;
+  const activeApps = S.apps.filter(a => ['applied', 'interview'].includes(a.status)).length;
+  return `
+  <section class="card hero" aria-label="Career readiness">
+    <div class="hero-l">
+      <h1>${greeting()}, ${esc(first)}.</h1>
+      <p>You are ${r.total}% ready for ${esc(ROLES[S.profile.role].label)} roles. Here is the single move that will help most right now.</p>
+      <div class="next">
+        <div class="ico">${ic(nm.icon)}</div>
+        <div><small>Your next move</small><b>${esc(nm.title)}</b><p>${esc(nm.why)}</p></div>
+        ${nm.href ? `<a class="btn primary sm" href="${nm.href}">${esc(nm.cta)}</a>` : `<button class="btn primary sm" data-act="${nm.act}">${esc(nm.cta)}</button>`}
+      </div>
+    </div>
+    <div class="hero-r">
+      <div class="ring">${ringSvg(r.total)}<div class="num"><b>${r.total}</b><span>readiness</span></div></div>
+      <div class="factors">${r.parts.map(([l, v]) => `<div class="factor"><div><span>${l}</span><span>${Math.round(v * 100)}%</span></div><div class="bar" style="height:6px"><i style="width:${Math.round(v * 100)}%"></i></div></div>`).join('')}</div>
+    </div>
+  </section>
+
+  <section class="grid g-4 mt" aria-label="Key numbers">
+    <div class="card stat"><div class="top">Active applications<span class="ic">${ic('briefcase')}</span></div><b>${activeApps}</b><small>${S.apps.length} tracked in total</small></div>
+    <div class="card stat"><div class="top">Interviews<span class="ic v">${ic('calendar-check')}</span></div><b>${ivs}</b><small>${ivs ? 'Prepare in the planner' : 'None scheduled yet'}</small></div>
+    <div class="card stat"><div class="top">Study streak<span class="ic a">${ic('flame')}</span></div><b>${streak()} <span style="font-size:15px;color:var(--muted);font-weight:400">days</span></b><small>${wkTotal.toFixed(1)}h logged this week</small></div>
+    <div class="card stat"><div class="top">Tasks due this week<span class="ic g">${ic('list-checks')}</span></div><b>${dueWeek}</b><small>${S.tasks.filter(t => t.done).length} of ${S.tasks.length} completed</small></div>
+  </section>
+
+  <section class="grid g-21 mt">
+    <div class="card"><div class="card-head"><div><h3>Study time, last 7 days</h3><p>${wkTotal.toFixed(1)} hours logged. Goal is ${(S.profile.goal * 7).toFixed(1)} hours a week.</p></div><button class="btn sm" data-act="logHours">${ic('plus')}Log time</button></div><div class="chart">${barChart(wk, S.profile.goal)}</div></div>
+    <div class="card"><div class="card-head"><div><h3>Application pipeline</h3><p>Where each application stands.</p></div></div>
+      <div class="donut-wrap">${donut(counts)}<div class="legend">${counts.map(c => `<div><i style="background:${c.color}"></i>${c.label}<b>${c.n}</b></div>`).join('')}</div></div></div>
+  </section>
+
+  <section class="grid g-21 mt">
+    <div class="card"><div class="card-head"><div><h3>Skill gaps for ${esc(ROLES[S.profile.role].label)}</h3><p>The white marker shows the level employers expect.</p></div><a class="btn sm" href="#/skills">Manage skills</a></div>
+      ${gp.length ? gp.map(g => gapRow(g)).join('') : `<div class="empty">${ic('badge-check')}<b>No gaps found</b>Your skills meet every target for this role.</div>`}</div>
+    <div class="card"><div class="card-head"><div><h3>Coming up</h3><p>Deadlines, interviews and tasks.</p></div></div>
+      ${upcoming.length ? `<div class="list">${upcoming.map(u => { const d = dueLabel(u.date); return `<div class="li"><div class="dot">${ic(u.icon)}</div><div class="meta"><b>${esc(u.title)}</b><span>${u.sub}</span></div><span class="chip ${d.c}">${d.t}</span></div>`; }).join('')}</div>` : `<div class="empty">${ic('calendar')}<b>Nothing scheduled</b>Add a deadline or task to see it here.</div>`}</div>
+  </section>
+
+  <section class="card mt"><div class="card-head"><div><h3>Recent activity</h3></div></div>
+    <div class="list feed">${S.activity.slice(0, 5).map(a => `<div class="li"><div class="dot">${ic(a.icon)}</div><div class="meta"><b>${esc(a.text)}</b></div><small>${timeAgo(a.t)}</small></div>`).join('') || `<div class="empty"><b>No activity yet</b>Your changes will show up here.</div>`}</div></section>`;
+}
+function gapRow(g) {
+  return `<div class="gap"><span>${esc(g.name)}</span><div class="track" title="Level ${g.level} of target ${g.target}"><i style="width:${g.level / 5 * 100}%"></i><s style="left:${g.target / 5 * 100}%"></s></div><em>${g.level} / ${g.target}</em></div>`;
+}
+
+function appCardHtml(a) {
+  const d = a.date ? dueLabel(a.date) : null;
+  const label = a.status === 'interview' ? 'Interview' : a.status === 'saved' ? 'Deadline' : a.status === 'applied' ? 'Applied' : 'Updated';
+  return `<article class="kcard" draggable="true" data-id="${a.id}">
+    <h4>${esc(a.company)}</h4><div class="sub">${esc(a.role)}</div>
+    ${a.notes ? `<div class="notes">${esc(a.notes)}</div>` : ''}
+    <div class="foot">${a.location ? `<span class="chip">${ic('map-pin')}${esc(a.location)}</span>` : ''}${d ? `<span class="chip ${['saved', 'interview'].includes(a.status) ? d.c : ''}" title="${label}">${ic('clock')}${d.t}</span>` : ''}</div>
+    <div class="foot"><select aria-label="Move ${esc(a.company)} to stage" data-move="${a.id}">${STAGES.map(s => `<option value="${s.id}" ${s.id === a.status ? 'selected' : ''}>${s.label}</option>`).join('')}</select>
+      <div class="acts"><button class="btn ghost xs" data-act="editApp" data-id="${a.id}" aria-label="Edit ${esc(a.company)}">${ic('pencil')}</button><button class="btn ghost danger xs" data-act="delApp" data-id="${a.id}" aria-label="Delete ${esc(a.company)}">${ic('trash-2')}</button></div></div>
+  </article>`;
+}
+function boardHtml() {
+  const q = appQuery.trim().toLowerCase();
+  const list = S.apps.filter(a => !q || (a.company + ' ' + a.role + ' ' + a.location).toLowerCase().includes(q));
+  return STAGES.map(s => { const items = list.filter(a => a.status === s.id);
+    return `<section class="kcol" data-stage="${s.id}" aria-label="${s.label}"><header><i style="background:${s.color}"></i>${s.label}<span>${items.length}</span></header>
+    ${items.map(appCardHtml).join('') || `<div class="empty" style="padding:22px 8px;font-size:13px">${q ? 'No matches' : 'Drop an application here'}</div>`}</section>`; }).join('');
+}
+function viewApplications() {
+  const total = S.apps.length, resp = S.apps.filter(a => ['interview', 'offer', 'rejected'].includes(a.status)).length, sent = S.apps.filter(a => a.status !== 'saved').length;
+  return `<div class="page-head"><div><h1>Applications</h1><p>Drag cards between stages, or use the stage menu on each card. ${sent ? `You have heard back from ${resp} of ${sent} submitted applications.` : ''}</p></div>
+    <button class="btn primary" data-act="addApp">${ic('plus')}Add application</button></div>
+    <div class="toolbar"><input class="input" id="appSearch" type="search" placeholder="Filter by company, role or location" value="${esc(appQuery)}" aria-label="Filter applications"><span class="muted">${total} total</span></div>
+    ${total ? `<div class="board" id="board">${boardHtml()}</div>` : `<div class="card empty">${ic('briefcase')}<b>Track your first application</b>Save roles you like, then move them through each stage.<div style="margin-top:14px"><button class="btn primary" data-act="addApp">${ic('plus')}Add application</button></div></div>`}`;
+}
+
+const LEVELS = ['Not started', 'Beginner', 'Basic', 'Working', 'Strong', 'Expert'];
+function viewSkills() {
+  const g = gaps(); const meet = g.filter(x => x.gap === 0).length;
+  const cats = [...new Set(S.skills.map(s => s.cat))];
+  return `<div class="page-head"><div><h1>Skills</h1><p>Rate yourself honestly, then compare against what ${esc(ROLES[S.profile.role].label)} roles expect.</p></div><button class="btn primary" data-act="addSkill">${ic('plus')}Add skill</button></div>
+  <div class="grid g-2" style="align-items:start">
+    <div class="card"><div class="card-head"><div><h3>Your skills</h3><p>${S.skills.length} skills. Click a bar to set your level.</p></div></div>
+      ${S.skills.length ? [...S.skills].sort((a, b) => b.level - a.level).map(s => `<div class="skill"><div class="name"><b>${esc(s.name)}</b><span>${esc(s.cat)} · ${LEVELS[s.level]}</span></div>
+        <div class="pips" role="group" aria-label="${esc(s.name)} level">${[1, 2, 3, 4, 5].map(n => `<button class="${n <= s.level ? 'on' : ''}" data-act="setLevel" data-id="${s.id}" data-n="${n}" aria-label="Set ${esc(s.name)} to level ${n}"></button>`).join('')}</div>
+        <button class="btn ghost danger xs" data-act="delSkill" data-id="${s.id}" aria-label="Remove ${esc(s.name)}">${ic('x')}</button></div>`).join('') : `<div class="empty">${ic('gauge')}<b>No skills yet</b>Add your first skill to start the gap analysis.</div>`}</div>
+    <div class="card"><div class="card-head"><div><h3>Target: ${esc(ROLES[S.profile.role].label)}</h3><p>${meet} of ${g.length} requirements met.</p></div></div>
+      ${g.map(x => { const st = x.gap === 0 ? ['green', 'Ready'] : x.level === 0 ? ['red', 'Missing'] : ['amber', 'Needs work'];
+        return `<div class="req"><div class="meta"><b>${esc(x.name)}</b><span>Level ${x.level} of ${x.target} needed</span></div><span class="chip ${st[0]}">${st[1]}</span>
+        ${x.level === 0 ? `<button class="btn sm" data-act="quickSkill" data-name="${esc(x.name)}">${ic('plus')}Add</button>` : ''}</div>`; }).join('')}</div>
+  </div>`;
+}
+
+function viewRoadmap() {
+  const role = roadmapRole || S.profile.role; const p = roadmapProgress(role); const done = S.roadmap[role] || {};
+  const hrs = ROADMAPS[role].flatMap(ph => ph.items).filter(i => !done[i[0]]).reduce((a, i) => a + i[3], 0);
+  return `<div class="page-head"><div><h1>Roadmap</h1><p>A step-by-step plan for each role. Tick milestones as you finish them and your readiness score updates.</p></div></div>
+  <div class="toolbar"><div class="seg" role="tablist">${Object.entries(ROLES).map(([k, v]) => `<button role="tab" class="${k === role ? 'on' : ''}" data-act="roadRole" data-role="${k}" aria-selected="${k === role}">${v.label}</button>`).join('')}</div></div>
+  <div class="card"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px"><div><h3>${p.done} of ${p.total} milestones complete</h3><p class="muted" style="font-size:13px;margin-top:2px">About ${hrs} hours of work remaining.</p></div><b style="font-family:var(--font-h);font-size:24px">${Math.round(p.ratio * 100)}%</b></div><div class="bar"><i style="width:${p.ratio * 100}%"></i></div></div>
+  ${ROADMAPS[role].map(ph => { const n = ph.items.filter(i => done[i[0]]).length;
+    return `<div class="phase"><h3>${ph.phase}<span>${n} of ${ph.items.length} done</span></h3>${ph.items.map(i => `<button class="mile ${done[i[0]] ? 'done' : ''}" data-act="toggleMile" data-role="${role}" data-id="${i[0]}" aria-pressed="${!!done[i[0]]}"><span class="check">${ic('check')}</span><span><b>${i[1]}</b><p>${i[2]}</p></span><span class="chip">${i[3]}h</span></button>`).join('')}</div>`; }).join('')}`;
+}
+
+function taskRow(t) {
+  const d = dueLabel(t.due); const pc = { high: 'red', med: 'amber', low: '' }[t.pri];
+  return `<div class="task ${t.done ? 'done' : ''}"><button class="check ${t.done ? 'on' : ''}" data-act="toggleTask" data-id="${t.id}" role="checkbox" aria-checked="${t.done}" aria-label="Mark “${esc(t.title)}” ${t.done ? 'not done' : 'done'}">${ic('check')}</button>
+    <span class="t">${esc(t.title)}</span><span class="chip ${pc}">${{ high: 'High', med: 'Medium', low: 'Low' }[t.pri]}</span>${t.due ? `<span class="chip ${t.done ? '' : d.c}">${d.t}</span>` : ''}
+    <button class="btn ghost danger xs" data-act="delTask" data-id="${t.id}" aria-label="Delete task">${ic('trash-2')}</button></div>`;
+}
+function filteredTasks() {
+  let l = [...S.tasks];
+  if (taskFilter === 'today') l = l.filter(t => !t.done && t.due && daysUntil(t.due) <= 0);
+  else if (taskFilter === 'upcoming') l = l.filter(t => !t.done && t.due && daysUntil(t.due) > 0);
+  else if (taskFilter === 'done') l = l.filter(t => t.done);
+  const po = { high: 0, med: 1, low: 2 };
+  return l.sort((a, b) => (a.done - b.done) || ((a.due || '9') .localeCompare(b.due || '9')) || po[a.pri] - po[b.pri]);
+}
+function viewPlanner() {
+  const wk = weekHours(); const tot = wk.reduce((a, b) => a + b.v, 0); const goal = S.profile.goal; const l = filteredTasks();
+  return `<div class="page-head"><div><h1>Planner</h1><p>Keep applications, study sessions and interview prep moving with a short, honest list.</p></div></div>
+  <div class="grid g-21" style="align-items:start">
+    <div class="card"><div class="card-head"><h3>Tasks</h3><div class="seg">${[['all', 'All'], ['today', 'Due now'], ['upcoming', 'Upcoming'], ['done', 'Done']].map(([k, v]) => `<button class="${taskFilter === k ? 'on' : ''}" data-act="taskFilter" data-f="${k}">${v}</button>`).join('')}</div></div>
+      <div class="addrow"><input class="input" id="tTitle" placeholder="Add a task, for example “Mock interview with a friend”" aria-label="Task title"><input class="input" id="tDue" type="date" aria-label="Due date" value="${addDays(1)}"><select class="select" id="tPri" aria-label="Priority"><option value="high">High</option><option value="med" selected>Medium</option><option value="low">Low</option></select><button class="btn primary" data-act="addTask">${ic('plus')}Add</button></div>
+      ${l.length ? l.map(taskRow).join('') : `<div class="empty">${ic('list-checks')}<b>${taskFilter === 'done' ? 'Nothing completed yet' : 'You are all caught up'}</b>${taskFilter === 'all' ? 'Add a task above to get started.' : 'Switch filters to see other tasks.'}</div>`}</div>
+    <div class="card"><div class="card-head"><div><h3>Study log</h3><p>${tot.toFixed(1)}h of ${(goal * 7).toFixed(1)}h this week</p></div><button class="btn sm" data-act="logHours">${ic('plus')}Log</button></div>
+      <div class="bar" style="margin-bottom:18px"><i style="width:${clamp(tot / (goal * 7) * 100, 0, 100)}%"></i></div>
+      <div class="daybars">${wk.slice().reverse().map(d => `<div class="dayrow"><span>${d.today ? 'Today' : d.label}</span><div class="bar" style="height:6px"><i style="width:${clamp(d.v / goal * 100, 0, 100)}%"></i></div><b>${d.v}h</b></div>`).join('')}</div></div>
+  </div>`;
+}
+
+/* Resume analysis (rule-based, runs locally) */
+function analyzeResume(text) {
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0; const lower = text.toLowerCase();
+  const email = /[\w.+-]+@[\w-]+\.[\w.]+/.test(text); const links = /(github\.com|linkedin\.com|portfolio|https?:\/\/)/i.test(text);
+  const secs = { Education: /education|university|college|b\.?tech|bachelor/i, Experience: /experience|intern|employment|work history/i, Projects: /projects?\b/i, Skills: /skills|technologies|tools/i };
+  const secHit = Object.entries(secs).filter(([, re]) => re.test(text)).map(([k]) => k);
+  const verbs = (text.match(/\b(built|developed|designed|led|created|launched|improved|reduced|increased|optimi[sz]ed|implemented|shipped|automated|analy[sz]ed|managed|delivered|migrated|refactored)\b/gi) || []).length;
+  const metrics = (text.match(/\b\d+(\.\d+)?\s?(%|x\b|k\b|ms\b|users|students|hours|seconds|requests)|\b\d{2,}\b/gi) || []).length;
+  const weak = (text.match(/(responsible for|worked on|helped with|hard[- ]?working|team player|duties included)/gi) || []);
+  const req = ROLES[S.profile.role].req.map(r => r[0]); const kwHit = req.filter(k => lower.includes(k.toLowerCase().replace(' & ', ' ').split(' ')[0]));
+  const items = [];
+  const add = (label, got, max, tip, okMsg) => { const r = got / max; items.push({ label, got: Math.round(got), max, st: r >= .85 ? 'pass' : r >= .4 ? 'warn' : 'fail', tip: r >= .85 ? okMsg : tip }); };
+  add('Contact details', (email ? 8 : 0) + (links ? 7 : 0), 15, `${!email ? 'Add an email address. ' : ''}${!links ? 'Link your GitHub, LinkedIn or portfolio.' : ''}`, 'Email and profile links are present.');
+  add('Key sections', secHit.length * 5, 20, `Missing: ${Object.keys(secs).filter(k => !secHit.includes(k)).join(', ')}.`, 'Education, experience, projects and skills are all covered.');
+  const lenScore = words >= 300 && words <= 700 ? 10 : words === 0 ? 0 : words < 300 ? clamp(words / 300 * 10, 0, 8) : clamp(10 - (words - 700) / 100, 4, 9);
+  add('Length', lenScore, 10, words < 300 ? `${words} words is short. Aim for 300 to 700 with one page of focused detail.` : `${words} words is long. Trim older or less relevant detail.`, `${words} words is a good length.`);
+  add('Action verbs', Math.min(verbs / 6, 1) * 15, 15, `Found ${verbs}. Start bullets with verbs like built, shipped, reduced or led.`, `Found ${verbs} strong action verbs.`);
+  add('Measurable results', Math.min(metrics / 4, 1) * 15, 15, `Found ${metrics} numbers. Add scale or impact, such as “cut load time by 35%”.`, `Found ${metrics} quantified results.`);
+  add(`Match with ${ROLES[S.profile.role].label}`, kwHit.length / req.length * 20, 20, `Mentioned ${kwHit.length} of ${req.length} key skills. Consider adding: ${req.filter(k => !kwHit.includes(k)).slice(0, 4).join(', ')}.`, 'Most of the key skills for this role appear.');
+  add('Clear wording', weak.length ? Math.max(5 - weak.length * 2, 0) : 5, 5, `Replace phrases like “${weak[0]}” with what you actually did and achieved.`, 'No vague filler phrases found.');
+  const total = items.reduce((a, b) => a + b.got, 0);
+  return { total: words ? Math.round(total) : 0, items, words };
+}
+const SAMPLE_RESUME = `Alex Rivera
+alex.rivera@email.com | github.com/alexrivera | linkedin.com/in/alexrivera
+
+Education
+B.Tech in Computer Science, State University, 2023 to 2027. CGPA 8.4
+
+Experience
+Frontend Intern, Brightside Studio (Jun to Aug 2025)
+- Built 12 reusable React components that reduced page build time by 30%
+- Improved Lighthouse accessibility score from 72 to 96 across 5 pages
+- Worked on bug fixes for the checkout flow
+
+Projects
+CareerPilot Dashboard - Designed and shipped a responsive dashboard used by 150 students
+Weather Atlas - Developed a TypeScript app with a REST API and offline caching, tested with Jest
+
+Skills
+JavaScript, React, TypeScript, HTML, CSS, Git, Figma, Accessibility, Testing`;
+function resumeResultHtml(res) {
+  const ic2 = { pass: 'check', warn: 'minus', fail: 'x' };
+  return `<div class="score-big"><div class="ring" style="width:120px;height:120px">${ringSvg(res.total, 120, 10, 'rg2')}<div class="num"><b style="font-size:30px">${res.total}</b><span>out of 100</span></div></div>
+    <div style="flex:1;min-width:180px"><h3>${res.words ? (res.total >= 80 ? 'Strong resume' : res.total >= 55 ? 'Good start, a few fixes needed' : 'Needs work') : 'Waiting for your resume'}</h3><p class="muted" style="font-size:13.5px;margin-top:4px">${res.words ? `${res.words} words analysed against ${esc(ROLES[S.profile.role].label)} roles. This check runs in your browser and nothing is uploaded.` : 'Paste your resume text to get a score and specific fixes.'}</p></div></div>
+    ${res.words ? `<div style="margin-top:14px">${res.items.map(i => `<div class="chk"><span class="st ${i.st}">${ic(ic2[i.st])}</span><div><b>${i.label}</b><p>${esc(i.tip)}</p></div><span class="pts">${i.got} / ${i.max}</span></div>`).join('')}</div>` : ''}`;
+}
+function viewResume() {
+  return `<div class="page-head"><div><h1>Resume check</h1><p>Paste your resume as plain text and get an instant score with concrete suggestions.</p></div></div>
+  <div class="grid g-2" style="align-items:start">
+    <div class="card"><div class="card-head"><h3>Your resume</h3><div style="display:flex;gap:8px"><button class="btn sm" data-act="sampleResume">Use sample</button><button class="btn sm ghost" data-act="clearResume">Clear</button></div></div>
+      <textarea class="textarea" id="resumeText" style="min-height:420px;font-size:14px" placeholder="Paste your resume text here" aria-label="Resume text">${esc(S.resume)}</textarea></div>
+    <div class="card" id="resumeOut">${resumeResultHtml(analyzeResume(S.resume))}</div>
+  </div>`;
+}
+
+function viewSettings() {
+  const p = S.profile;
+  return `<div class="page-head"><div><h1>Settings</h1><p>Your data stays in this browser. Export a backup any time.</p></div></div>
+  <div class="grid g-2" style="align-items:start">
+    <form class="card" id="profileForm"><div class="card-head"><h3>Profile</h3></div>
+      <div class="field"><label for="pn">Full name</label><input class="input" id="pn" name="name" value="${esc(p.name)}" required maxlength="60"></div>
+      <div class="row2"><div class="field"><label for="pu">University</label><input class="input" id="pu" name="university" value="${esc(p.university)}" maxlength="60"></div><div class="field"><label for="pg">Graduation year</label><input class="input" id="pg" name="grad" value="${esc(p.grad)}" maxlength="4" inputmode="numeric"></div></div>
+      <div class="row2"><div class="field"><label for="pr">Target role</label><select class="select" id="pr" name="role">${Object.entries(ROLES).map(([k, v]) => `<option value="${k}" ${k === p.role ? 'selected' : ''}>${v.label}</option>`).join('')}</select></div>
+      <div class="field"><label for="pgl">Daily study goal (hours)</label><input class="input" id="pgl" name="goal" type="number" min="0.5" max="12" step="0.5" value="${p.goal}"></div></div>
+      <button class="btn primary" type="submit">Save changes</button></form>
+    <div class="card"><div class="card-head"><h3>Your data</h3></div>
+      <div class="list">
+        <div class="li"><div class="meta"><b>Export backup</b><span>Download everything as a JSON file.</span></div><button class="btn sm" data-act="export">${ic('download')}Export</button></div>
+        <div class="li"><div class="meta"><b>Import backup</b><span>Replace current data with a backup file.</span></div><button class="btn sm" data-act="import">${ic('upload')}Import</button><input type="file" id="importFile" accept="application/json" hidden></div>
+        <div class="li"><div class="meta"><b>Reset to sample data</b><span>Restore the demo workspace.</span></div><button class="btn sm" data-act="reset">${ic('rotate-ccw')}Reset</button></div>
+        <div class="li"><div class="meta"><b>Delete all data</b><span>Start with an empty workspace.</span></div><button class="btn sm danger" data-act="wipe">${ic('trash-2')}Delete</button></div>
+      </div></div>
+  </div>`;
+}
+
+const VIEWS = { dashboard: viewDashboard, applications: viewApplications, planner: viewPlanner, skills: viewSkills, roadmap: viewRoadmap, resume: viewResume, settings: viewSettings };
+const TITLES = { dashboard: 'Dashboard', applications: 'Applications', planner: 'Planner', skills: 'Skills', roadmap: 'Roadmap', resume: 'Resume check', settings: 'Settings' };
+
+/* ============ Rendering ============ */
+function route() { const r = (location.hash.replace(/^#\/?/, '') || 'dashboard'); return VIEWS[r] ? r : 'dashboard'; }
+function renderChrome() {
+  const cur = route(); let lastGroup = '';
+  $('#nav').innerHTML = NAV.map(n => { const g = n.group !== lastGroup ? `<div class="nav-label">${n.group}</div>` : ''; lastGroup = n.group; const b = n.badge ? n.badge() : 0;
+    return `${g}<a href="#/${n.id}" class="${n.id === cur ? 'active' : ''}" title="${n.label}" ${n.id === cur ? 'aria-current="page"' : ''}>${ic(n.icon)}<span>${n.label}</span>${b ? `<em class="badge" style="font-style:normal">${b}</em>` : ''}</a>`; }).join('');
+  $('#app').classList.toggle('collapsed', !!S.ui.collapsed);
+  $('.collapse-btn').setAttribute('aria-label', S.ui.collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+  $('#sbName').textContent = S.profile.name.split(' ')[0] || 'You';
+  $('#sbRole').textContent = ROLES[S.profile.role].label;
+  $('#sbAvatar').textContent = (S.profile.name.trim()[0] || 'A').toUpperCase();
+  document.title = `${TITLES[cur]} · CareerPilot AI`;
+  icons();
+}
+function render() {
+  const cur = route(); $('#view').innerHTML = VIEWS[cur](); renderChrome(); icons();
+}
+function toast(msg) {
+  const el = document.createElement('div'); el.className = 'toast'; el.innerHTML = `${ic('check-circle-2')}<span>${esc(msg)}</span>`;
+  $('#toasts').appendChild(el); icons(); setTimeout(() => el.remove(), 2800);
+}
+
+/* ============ Modals ============ */
+function closeModal() { const m = $('#modal'); m.hidden = true; m.innerHTML = ''; if (m._prev && document.contains(m._prev)) m._prev.focus(); }
+function openModal(title, body, onSubmit, label = 'Save') {
+  const m = $('#modal'); m._prev = document.activeElement;
+  m.innerHTML = `<div class="scrim" data-act="closeModal"></div><div class="dialog" role="dialog" aria-modal="true" aria-label="${esc(title)}"><header><h3>${esc(title)}</h3><button class="icon-btn" data-act="closeModal" aria-label="Close dialog">${ic('x')}</button></header>
+    <form id="mform" novalidate>${body}<footer><button type="button" class="btn ghost" data-act="closeModal">Cancel</button><button type="submit" class="btn primary">${esc(label)}</button></footer></form></div>`;
+  m.hidden = false; icons();
+  const f = $('#mform'); const first = $('input,select,textarea', f); first && first.focus();
+  f.addEventListener('submit', e => { e.preventDefault(); if (!f.checkValidity()) { f.reportValidity(); return; } onSubmit(Object.fromEntries(new FormData(f))); closeModal(); });
+  f.noValidate = false;
+}
+function appForm(a = {}) {
+  return `<div class="field"><label for="m1">Company</label><input class="input" id="m1" name="company" required maxlength="60" value="${esc(a.company || '')}" placeholder="Company name"></div>
+  <div class="field"><label for="m2">Role</label><input class="input" id="m2" name="role" required maxlength="80" value="${esc(a.role || '')}" placeholder="Frontend Intern"></div>
+  <div class="row2"><div class="field"><label for="m3">Stage</label><select class="select" id="m3" name="status">${STAGES.map(s => `<option value="${s.id}" ${s.id === (a.status || 'saved') ? 'selected' : ''}>${s.label}</option>`).join('')}</select></div>
+  <div class="field"><label for="m4">Key date</label><input class="input" id="m4" type="date" name="date" value="${a.date || ''}"></div></div>
+  <div class="field"><label for="m5">Location</label><input class="input" id="m5" name="location" maxlength="40" value="${esc(a.location || '')}" placeholder="Remote, Hybrid or city"></div>
+  <div class="field"><label for="m6">Notes</label><textarea class="textarea" id="m6" name="notes" maxlength="300" placeholder="Referrals, prep ideas, contacts">${esc(a.notes || '')}</textarea></div>`;
+}
+function openAppModal(id) {
+  const a = id ? S.apps.find(x => x.id === id) : null;
+  openModal(a ? 'Edit application' : 'Add application', appForm(a || {}), d => {
+    commit(s => { if (a) { Object.assign(a, d); log(`Updated ${d.company}`, 'pencil'); } else { s.apps.push({ id: uid(), ...d }); log(`Added ${d.company} (${STAGES.find(x => x.id === d.status).label})`, 'plus-circle'); } });
+    toast(a ? 'Application saved' : 'Application added'); if (!a && route() !== 'applications') location.hash = '#/applications';
+  }, a ? 'Save changes' : 'Add application');
+}
+function openSkillModal(pre = '') {
+  openModal('Add skill', `<div class="field"><label for="s1">Skill</label><input class="input" id="s1" name="name" required maxlength="40" value="${esc(pre)}" placeholder="For example, Node.js"></div>
+  <div class="row2"><div class="field"><label for="s2">Category</label><select class="select" id="s2" name="cat">${['Core', 'Framework', 'Tooling', 'Design', 'Data', 'Soft skill'].map(c => `<option>${c}</option>`).join('')}</select></div>
+  <div class="field"><label for="s3">Level</label><select class="select" id="s3" name="level">${[1, 2, 3, 4, 5].map(n => `<option value="${n}" ${n === 2 ? 'selected' : ''}>${n} · ${LEVELS[n]}</option>`).join('')}</select></div></div>`,
+  d => { commit(s => { s.skills.push({ id: uid(), name: d.name.trim(), cat: d.cat, level: +d.level }); log(`Added skill ${d.name.trim()}`, 'gauge'); }); toast('Skill added'); }, 'Add skill');
+}
+function openHoursModal() {
+  openModal('Log study time', `<div class="row2"><div class="field"><label for="h1">Hours studied</label><input class="input" id="h1" name="h" type="number" min="0.25" max="16" step="0.25" value="1" required></div>
+  <div class="field"><label for="h2">Date</label><input class="input" id="h2" name="date" type="date" value="${today()}" max="${today()}" required></div></div><p class="muted" style="font-size:13px;margin-bottom:14px">Hours are added to anything already logged for that day.</p>`,
+  d => { commit(s => { s.hours[d.date] = +((s.hours[d.date] || 0) + (+d.h)).toFixed(2); log(`Logged ${d.h}h of study`, 'timer'); }); toast(`Logged ${d.h}h`); }, 'Log time');
+}
+function confirmModal(title, msg, label, fn) { openModal(title, `<p class="muted" style="margin-bottom:18px">${esc(msg)}</p>`, fn, label); const b = $('#mform .btn.primary'); b && b.focus(); }
+
+/* ============ Actions ============ */
+function moveApp(id, status) {
+  const a = S.apps.find(x => x.id === id); if (!a || a.status === status) return;
+  commit(s => { a.status = status; log(`Moved ${a.company} to ${STAGES.find(x => x.id === status).label}`, 'move-right'); }); toast(`Moved to ${STAGES.find(x => x.id === status).label}`);
+}
+const ACT = {
+  collapse: () => commit(s => { s.ui.collapsed = !s.ui.collapsed; }, { quiet: true }),
+  openMenu: () => $('#app').classList.add('open'),
+  closeMenu: () => $('#app').classList.remove('open'),
+  closeModal,
+  addApp: () => openAppModal(),
+  editApp: el => openAppModal(el.dataset.id),
+  delApp: el => { const a = S.apps.find(x => x.id === el.dataset.id); confirmModal('Delete application', `Remove ${a.company} from your tracker? This cannot be undone.`, 'Delete', () => { commit(s => { s.apps = s.apps.filter(x => x.id !== a.id); log(`Deleted ${a.company}`, 'trash-2'); }); toast('Application deleted'); }); },
+  addSkill: () => openSkillModal(),
+  quickSkill: el => openSkillModal(el.dataset.name),
+  setLevel: el => commit(s => { const k = s.skills.find(x => x.id === el.dataset.id); k.level = k.level === +el.dataset.n ? +el.dataset.n - 1 : +el.dataset.n; }),
+  delSkill: el => commit(s => { const k = s.skills.find(x => x.id === el.dataset.id); s.skills = s.skills.filter(x => x.id !== k.id); log(`Removed skill ${k.name}`, 'x'); }),
+  roadRole: el => { roadmapRole = el.dataset.role; render(); },
+  toggleMile: el => { const role = el.dataset.role, id = el.dataset.id; commit(s => { s.roadmap[role] = s.roadmap[role] || {}; s.roadmap[role][id] = !s.roadmap[role][id]; if (s.roadmap[role][id]) { const m = ROADMAPS[role].flatMap(p => p.items).find(i => i[0] === id); log(`Finished milestone “${m[1]}”`, 'flag'); } }); },
+  logHours: openHoursModal,
+  addTask: () => { const t = $('#tTitle').value.trim(); if (!t) { $('#tTitle').focus(); toast('Enter a task title first'); return; } commit(s => { s.tasks.push({ id: uid(), title: t, due: $('#tDue').value, pri: $('#tPri').value, done: false }); log(`Added task “${t}”`, 'plus-circle'); }); toast('Task added'); },
+  toggleTask: el => commit(s => { const t = s.tasks.find(x => x.id === el.dataset.id); t.done = !t.done; if (t.done) log(`Completed “${t.title}”`, 'check-circle-2'); }),
+  delTask: el => commit(s => { s.tasks = s.tasks.filter(x => x.id !== el.dataset.id); }),
+  taskFilter: el => { taskFilter = el.dataset.f; render(); },
+  sampleResume: () => { commit(s => { s.resume = SAMPLE_RESUME; }); },
+  clearResume: () => { commit(s => { s.resume = ''; }); },
+  export: () => { const b = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'careerpilot-backup.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast('Backup exported'); },
+  import: () => $('#importFile').click(),
+  reset: () => confirmModal('Reset to sample data', 'This replaces your current data with the demo workspace.', 'Reset', () => { S = seed(); save(); render(); toast('Sample data restored'); }),
+  wipe: () => confirmModal('Delete all data', 'This removes every application, skill, task and log. It cannot be undone.', 'Delete everything', () => { const p = S.profile; S = { ...seed(), profile: p, apps: [], skills: [], tasks: [], hours: {}, roadmap: {}, resume: '', activity: [] }; save(); render(); toast('All data deleted'); })
+};
+
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const fn = ACT[el.dataset.act]; if (fn) { e.preventDefault(); fn(el, e); }
+});
+document.addEventListener('change', e => {
+  if (e.target.matches('[data-move]')) moveApp(e.target.dataset.move, e.target.value);
+  if (e.target.id === 'importFile') {
+    const f = e.target.files[0]; if (!f) return; const rd = new FileReader();
+    rd.onload = () => { try { const d = JSON.parse(rd.result); if (d.v !== 1 || !Array.isArray(d.apps)) throw 0; S = d; save(); render(); toast('Backup imported'); } catch (_) { toast('That file is not a CareerPilot backup'); } };
+    rd.readAsText(f);
+  }
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'appSearch') { appQuery = e.target.value; const b = $('#board'); if (b) { b.innerHTML = boardHtml(); icons(); } }
+  if (e.target.id === 'resumeText') { S.resume = e.target.value; clearTimeout(window._rt); window._rt = setTimeout(() => { save(); $('#resumeOut').innerHTML = resumeResultHtml(analyzeResume(S.resume)); icons(); }, 250); }
+});
+document.addEventListener('submit', e => {
+  if (e.target.id === 'profileForm') { e.preventDefault(); const d = Object.fromEntries(new FormData(e.target)); commit(s => { s.profile = { ...s.profile, name: d.name.trim() || s.profile.name, university: d.university, grad: d.grad, role: d.role, goal: clamp(+d.goal || 2, .5, 12) }; roadmapRole = null; }); toast('Profile saved'); }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { if (!$('#modal').hidden) closeModal(); $('#app').classList.remove('open'); hideResults(); }
+  if (e.key === 'Enter' && e.target.id === 'tTitle') { e.preventDefault(); ACT.addTask(); }
+  if (e.key === '/' && !/input|textarea|select/i.test(document.activeElement.tagName)) { e.preventDefault(); $('#q').focus(); }
+});
+
+/* Drag and drop for the kanban board */
+let dragId = null;
+document.addEventListener('dragstart', e => { const c = e.target.closest && e.target.closest('.kcard'); if (!c) return; dragId = c.dataset.id; c.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', dragId); } catch (_) {} });
+document.addEventListener('dragend', () => { dragId = null; $$('.kcard.dragging').forEach(c => c.classList.remove('dragging')); $$('.kcol.over').forEach(c => c.classList.remove('over')); });
+document.addEventListener('dragover', e => { const col = e.target.closest && e.target.closest('.kcol'); if (!col || !dragId) return; e.preventDefault(); $$('.kcol.over').forEach(c => c !== col && c.classList.remove('over')); col.classList.add('over'); });
+document.addEventListener('drop', e => { const col = e.target.closest && e.target.closest('.kcol'); if (!col || !dragId) return; e.preventDefault(); const id = dragId; dragId = null; moveApp(id, col.dataset.stage); });
+
+/* Global search */
+function hideResults() { $('#results').hidden = true; }
+$('#q').addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase(); const box = $('#results'); if (!q) { hideResults(); return; }
+  const hits = [
+    ...S.apps.filter(a => (a.company + ' ' + a.role).toLowerCase().includes(q)).map(a => ({ t: `${a.company} · ${a.role}`, k: 'Application', i: 'briefcase', h: '#/applications' })),
+    ...S.tasks.filter(t => t.title.toLowerCase().includes(q)).map(t => ({ t: t.title, k: 'Task', i: 'list-checks', h: '#/planner' })),
+    ...S.skills.filter(s => s.name.toLowerCase().includes(q)).map(s => ({ t: s.name, k: 'Skill', i: 'gauge', h: '#/skills' }))
+  ].slice(0, 8);
+  box.innerHTML = hits.length ? hits.map(h => `<a href="${h.h}">${ic(h.i)}<span>${esc(h.t)}</span><small>${h.k}</small></a>`).join('') : `<div class="none">No results for “${esc(e.target.value)}”.</div>`;
+  box.hidden = false; icons();
+});
+$('#results').addEventListener('click', () => { hideResults(); $('#q').value = ''; });
+document.addEventListener('click', e => { if (!e.target.closest('.search')) hideResults(); });
+
+window.addEventListener('hashchange', () => { $('#app').classList.remove('open'); render(); window.scrollTo(0, 0); });
+
+/* Boot */
+render();
+</script>
+</body>
+</html>
