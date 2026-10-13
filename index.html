@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CareerPilot AI — Smart Career Dashboard</title>
+<meta name="description" content="Track applications, skills, goals and study time in one career dashboard for students.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.383.0/dist/umd/lucide.min.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <div class="brand">
+      <div class="logo"><i data-lucide="compass"></i></div>
+      <div><b>CareerPilot</b><small>Career dashboard</small></div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="sb-foot">
+      <a class="profile" href="#/settings" title="Profile and settings">
+        <div class="avatar" id="sbAvatar">A</div>
+        <div><b id="sbName">Alex</b><span id="sbRole">Frontend Developer</span></div>
+      </a>
+      <button class="collapse-btn" data-act="collapse" aria-label="Collapse sidebar"><i data-lucide="panel-left-close"></i><span>Collapse</span></button>
+    </div>
+  </aside>
+  <div class="drawer-scrim" data-act="closeMenu"></div>
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn menu-btn" data-act="openMenu" aria-label="Open menu"><i data-lucide="menu"></i></button>
+      <div class="search">
+        <i data-lucide="search"></i>
+        <input id="q" type="search" placeholder="Search applications, tasks, skills" autocomplete="off" aria-label="Search">
+        <kbd>/</kbd>
+        <div class="results" id="results" hidden></div>
+      </div>
+      <div class="top-actions">
+        <button class="btn" data-act="logHours"><i data-lucide="timer"></i><span>Log study time</span></button>
+        <button class="btn primary" data-act="addApp"><i data-lucide="plus"></i><span>Add application</span></button>
+      </div>
+    </header>
+    <main id="view" class="page" tabindex="-1"></main>
+  </div>
+</div>
+<div id="modal" hidden></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
